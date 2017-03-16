@@ -22,8 +22,11 @@ import android.app.Dialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.Bundle;
+import android.os.SystemClock;
+import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.DialogFragment;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -31,6 +34,7 @@ import android.text.TextUtils;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.view.animation.BounceInterpolator;
 import android.widget.EditText;
 import android.widget.Toast;
 
@@ -69,28 +73,28 @@ public class MapDemoActivity extends AppCompatActivity implements
 		mapFragment = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map));
 		if (mapFragment != null) {
 			mapFragment.getMapAsync(new OnMapReadyCallback() {
-                @Override
-                public void onMapReady(GoogleMap map) {
-                    loadMap(map);
-                }
-            });
+				@Override
+				public void onMapReady(GoogleMap map) {
+					loadMap(map);
+				}
+			});
 		} else {
 			Toast.makeText(this, "Error - Map Fragment was null!!", Toast.LENGTH_SHORT).show();
 		}
 
 	}
 
-    protected void loadMap(GoogleMap googleMap) {
-        map = googleMap;
-        if (map != null) {
+	protected void loadMap(GoogleMap googleMap) {
+		map = googleMap;
+		if (map != null) {
 			map.setOnMapLongClickListener(this);
-            // Map is ready
-            Toast.makeText(this, "Map Fragment was loaded properly!", Toast.LENGTH_SHORT).show();
+			// Map is ready
+			Toast.makeText(this, "Map Fragment was loaded properly!", Toast.LENGTH_SHORT).show();
 			MapDemoActivityPermissionsDispatcher.getMyLocationWithCheck(this);
-        } else {
-            Toast.makeText(this, "Error - Map was null!!", Toast.LENGTH_SHORT).show();
-        }
-    }
+		} else {
+			Toast.makeText(this, "Error - Map was null!!", Toast.LENGTH_SHORT).show();
+		}
+	}
 
 	@Override
 	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
@@ -112,31 +116,31 @@ public class MapDemoActivity extends AppCompatActivity implements
 		}
 	}
 
-    protected void connectClient() {
-        // Connect the client.
-        if (isGooglePlayServicesAvailable() && mGoogleApiClient != null) {
-            mGoogleApiClient.connect();
-        }
-    }
+	protected void connectClient() {
+		// Connect the client.
+		if (isGooglePlayServicesAvailable() && mGoogleApiClient != null) {
+			mGoogleApiClient.connect();
+		}
+	}
 
-    /*
+	/*
      * Called when the Activity becomes visible.
     */
-    @Override
-    protected void onStart() {
-        super.onStart();
-        connectClient();
-    }
+	@Override
+	protected void onStart() {
+		super.onStart();
+		connectClient();
+	}
 
-    /*
+	/*
 	 * Called when the Activity is no longer visible.
 	 */
 	@Override
 	protected void onStop() {
 		// Disconnecting the client invalidates it.
-        if (mGoogleApiClient != null) {
-            mGoogleApiClient.disconnect();
-        }
+		if (mGoogleApiClient != null) {
+			mGoogleApiClient.disconnect();
+		}
 		super.onStop();
 	}
 
@@ -148,15 +152,15 @@ public class MapDemoActivity extends AppCompatActivity implements
 		// Decide what to do based on the original request code
 		switch (requestCode) {
 
-		case CONNECTION_FAILURE_RESOLUTION_REQUEST:
+			case CONNECTION_FAILURE_RESOLUTION_REQUEST:
 			/*
 			 * If the result code is Activity.RESULT_OK, try to connect again
 			 */
-			switch (resultCode) {
-			case Activity.RESULT_OK:
-				mGoogleApiClient.connect();
-				break;
-			}
+				switch (resultCode) {
+					case Activity.RESULT_OK:
+						mGoogleApiClient.connect();
+						break;
+				}
 
 		}
 	}
@@ -194,26 +198,46 @@ public class MapDemoActivity extends AppCompatActivity implements
 	@Override
 	public void onConnected(Bundle dataBundle) {
 		// Display the connection status
+		if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+			// TODO: Consider calling
+			//    ActivityCompat#requestPermissions
+			// here to request the missing permissions, and then overriding
+			//   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+			//                                          int[] grantResults)
+			// to handle the case where the user grants the permission. See the documentation
+			// for ActivityCompat#requestPermissions for more details.
+			return;
+		}
 		Location location = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
 		if (location != null) {
 			Toast.makeText(this, "GPS location was found!", Toast.LENGTH_SHORT).show();
 			LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
 			CameraUpdate cameraUpdate = CameraUpdateFactory.newLatLngZoom(latLng, 17);
 			map.animateCamera(cameraUpdate);
-        } else {
+		} else {
 			Toast.makeText(this, "Current location was null, enable GPS on emulator!", Toast.LENGTH_SHORT).show();
 		}
 		startLocationUpdates();
 	}
 
-    protected void startLocationUpdates() {
-        mLocationRequest = new LocationRequest();
-        mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
-        mLocationRequest.setInterval(UPDATE_INTERVAL);
-        mLocationRequest.setFastestInterval(FASTEST_INTERVAL);
-        LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
-                mLocationRequest, this);
-    }
+	protected void startLocationUpdates() {
+		mLocationRequest = new LocationRequest();
+		mLocationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
+		mLocationRequest.setInterval(UPDATE_INTERVAL);
+		mLocationRequest.setFastestInterval(FASTEST_INTERVAL);
+		if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+			// TODO: Consider calling
+			//    ActivityCompat#requestPermissions
+			// here to request the missing permissions, and then overriding
+			//   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+			//                                          int[] grantResults)
+			// to handle the case where the user grants the permission. See the documentation
+			// for ActivityCompat#requestPermissions for more details.
+			return;
+		}
+		LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,
+				mLocationRequest, this);
+	}
 
     public void onLocationChanged(Location location) {
         // Report to the UI that the location was updated
@@ -305,6 +329,12 @@ public class MapDemoActivity extends AppCompatActivity implements
 								.title(title)
 								.snippet(snippet)
 								.icon(defaultMarker));
+						// Define color of marker icon
+
+						// Animate marker using drop effect
+						// --> Call the dropPinEffect method here
+						dropPinEffect(marker);
+
 					}
 				});
 
@@ -341,6 +371,37 @@ public class MapDemoActivity extends AppCompatActivity implements
 		public Dialog onCreateDialog(Bundle savedInstanceState) {
 			return mDialog;
 		}
+	}
+	private void dropPinEffect(final Marker marker) {
+		// Handler allows us to repeat a code block after a specified delay
+		final android.os.Handler handler = new android.os.Handler();
+		final long start = SystemClock.uptimeMillis();
+		final long duration = 1500;
+
+		// Use the bounce interpolator
+		final android.view.animation.Interpolator interpolator =
+				new BounceInterpolator();
+
+		// Animate marker with a bounce updating its position every 15ms
+		handler.post(new Runnable() {
+			@Override
+			public void run() {
+				long elapsed = SystemClock.uptimeMillis() - start;
+				// Calculate t for bounce based on elapsed time
+				float t = Math.max(
+						1 - interpolator.getInterpolation((float) elapsed
+								/ duration), 0);
+				// Set the anchor
+				marker.setAnchor(0.5f, 1.0f + 14 * t);
+
+				if (t > 0.0) {
+					// Post this event again 15ms from now.
+					handler.postDelayed(this, 15);
+				} else { // done elapsing, show window
+					marker.showInfoWindow();
+				}
+			}
+		});
 	}
 
 }
