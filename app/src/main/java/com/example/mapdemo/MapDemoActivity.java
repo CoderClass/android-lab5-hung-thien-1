@@ -32,7 +32,8 @@ import permissions.dispatcher.RuntimePermissions;
 public class MapDemoActivity extends AppCompatActivity implements
 		GoogleApiClient.ConnectionCallbacks,
 		GoogleApiClient.OnConnectionFailedListener,
-		LocationListener {
+		LocationListener,
+		GoogleMap.OnMapLongClickListener {
 
 	private SupportMapFragment mapFragment;
 	private GoogleMap map;
@@ -73,6 +74,7 @@ public class MapDemoActivity extends AppCompatActivity implements
     protected void loadMap(GoogleMap googleMap) {
         map = googleMap;
         if (map != null) {
+			map.setOnMapLongClickListener(this);
             // Map is ready
             Toast.makeText(this, "Map Fragment was loaded properly!", Toast.LENGTH_SHORT).show();
 			MapDemoActivityPermissionsDispatcher.getMyLocationWithCheck(this);
@@ -253,6 +255,12 @@ public class MapDemoActivity extends AppCompatActivity implements
 			Toast.makeText(getApplicationContext(),
 					"Sorry. Location services not available to you", Toast.LENGTH_LONG).show();
 		}
+	}
+
+	@Override
+	public void onMapLongClick(LatLng latLng) {
+		Toast.makeText(this, "Long Press", Toast.LENGTH_LONG).show();
+
 	}
 
 	// Define a DialogFragment that displays the error dialog
