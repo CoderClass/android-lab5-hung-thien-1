@@ -88,6 +88,7 @@ public class MapDemoActivity extends AppCompatActivity implements
 		map = googleMap;
 		if (map != null) {
 			map.setOnMapLongClickListener(this);
+			map.setInfoWindowAdapter(new CustomWindowAdapter(getLayoutInflater()));
 			// Map is ready
 			Toast.makeText(this, "Map Fragment was loaded properly!", Toast.LENGTH_SHORT).show();
 			MapDemoActivityPermissionsDispatcher.getMyLocationWithCheck(this);
